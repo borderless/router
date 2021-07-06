@@ -52,7 +52,7 @@ class Node {
     // Find dynamic matches second.
     for (const [match, node] of this.dynamic) {
       const params = match(value);
-      if (!params) continue;
+      if (params === false) continue;
       yield [params, node];
     }
   }
@@ -169,7 +169,7 @@ export function createRouter(inputs: Iterable<string>) {
     // Reached the end of a valid match.
     if (segments.length === 0) {
       const { route, keys = [] } = node;
-      if (route) yield { route, keys, values };
+      if (typeof route === "string") yield { route, keys, values };
       return;
     }
 
@@ -263,7 +263,9 @@ export function parse(route: string): Path {
         const char = route[i];
 
         if (char === "]") {
-          if (!name) throw new TypeError(`Missing parameter name at ${i}`);
+          if (name === "") {
+            throw new TypeError(`Missing parameter name at ${i}`);
+          }
 
           i++;
           break;

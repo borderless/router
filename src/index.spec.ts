@@ -2,6 +2,7 @@ import { parse, createMatch, createRouter, buildRoutes } from "./index";
 
 describe("parse", () => {
   it("should parse simple segment", () => {
+    expect(parse("")).toEqual([]);
     expect(parse("test")).toEqual(["test"]);
     expect(parse("@blake")).toEqual(["@blake"]);
   });
@@ -92,6 +93,7 @@ describe("createMatch", () => {
 describe("buildRoutes", () => {
   it("should sort routes as static -> dynamic, specific -> general", () => {
     const inputs = [
+      "",
       "a",
       "b",
       "c",
@@ -111,6 +113,7 @@ describe("buildRoutes", () => {
       "b",
       "c",
       "[param]",
+      "",
       "@[key1]/@[key2]",
       "@[param]/x",
       "@[key]/y",
@@ -140,6 +143,14 @@ describe("createRouter", () => {
     ]);
 
     expect(Array.from(router("/foo/bar"))).toEqual([]);
+  });
+
+  it("should match empty route", () => {
+    const router = createRouter([""]);
+
+    expect(Array.from(router(""))).toEqual([
+      { route: "", keys: [], values: [] },
+    ]);
   });
 
   it("should error on duplicate routes", () => {
