@@ -13,6 +13,11 @@ export interface Result {
 }
 
 /**
+ * A router accepts the input pathname and returns an iterable of matching results.
+ */
+export type Router = (pathname: string) => Iterable<Result>;
+
+/**
  * Build a match function for dynamic route segments.
  */
 export type Match = (pathname: string) => string[] | false;
@@ -155,7 +160,7 @@ export function buildRoutes(inputs: string[]): Array<[string, Path[]]> {
  * Characters to avoid: < > : " / \ | ? *
  * Ref: https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
  */
-export function createRouter(inputs: Iterable<string>) {
+export function createRouter(inputs: Iterable<string>): Router {
   const root = new Node();
   const cache = new Map<string, Match>();
   const routes = buildRoutes(Array.from(inputs));
