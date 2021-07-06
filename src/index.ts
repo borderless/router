@@ -176,23 +176,32 @@ export function createRouter(inputs: Iterable<string>): Router {
 
   function* build(
     node: Node,
+    index: number,
     segments: string[],
     values: string[]
   ): Iterable<Result> {
     // Reached the end of a valid match.
-    if (segments.length === 0) {
-      const { route, keys = [] } = node;
-      if (typeof route === "string") yield { route, keys, values };
+    if (index === segments.length) {
+      if (typeof node.route === "string") {
+        yield {
+          route: node.route,
+          keys: node.keys ?? [],
+          values: values.slice(),
+        };
+      }
       return;
     }
 
-    for (const [params, child] of node.match(segments[0])) {
-      yield* build(child, segments.slice(1), [...values, ...params]);
+    const length = values.length;
+    for (const [params, child] of node.match(segments[index])) {
+      values.push(...params); // Append new values.
+      yield* build(child, index + 1, segments, values);
+      values.length = length; // Reset values after every iteration.
     }
   }
 
   return function match(pathname: string): Iterable<Result> {
-    return build(root, pathname.split("/"), []);
+    return build(root, 0, pathname.split("/"), []);
   };
 }
 
