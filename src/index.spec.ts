@@ -157,6 +157,10 @@ describe("createRouter", () => {
     expect(() => createRouter(["[a]", "[b]"])).toThrowError(
       "Route is already defined for [b]"
     );
+
+    expect(() => createRouter(["", ""])).toThrowError(
+      "Route is already defined for "
+    );
   });
 
   it("should support static routes under dynamic routes", () => {

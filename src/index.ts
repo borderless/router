@@ -100,7 +100,9 @@ function addToTrie(
     node = node.addDynamic(fn);
   }
 
-  if (node.route) throw new TypeError(`Route is already defined for ${route}`);
+  if (typeof node.route === "string") {
+    throw new TypeError(`Route is already defined for ${route}`);
+  }
 
   node.route = route;
   node.keys = params;
