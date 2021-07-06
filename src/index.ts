@@ -135,7 +135,7 @@ export function buildRoutes(inputs: string[]): Array<[string, Path[]]> {
 
           // Sort dynamic segments to the end.
           if (typeofA !== typeofB) {
-            return typeofA === "object" || typeofA === "undefined" ? 1 : -1;
+            return typeofA === "string" ? -1 : typeofB === "object" ? -1 : 1;
           }
 
           // Sort static segments alphabetically.
