@@ -92,13 +92,19 @@ function addToTrie(
   const params: string[] = [];
 
   for (const path of paths) {
-    // Handle simple "static" paths.
+    // Handle empty segments as static empty strings.
+    if (path.length === 0) {
+      node = node.addStatic("");
+      continue;
+    }
+
+    // Handle simple static-only paths.
     if (path.length === 1 && typeof path[0] == "string") {
       node = node.addStatic(path[0]);
       continue;
     }
 
-    // Re-use dynamic functions for slightly more space efficient tries.
+    // Everything else is dynamic, reuse match functions for efficient trie.
     const key = pathToKey(path, params);
     const fn = cache.get(key) ?? createMatch(path);
     cache.set(key, fn);
@@ -196,6 +202,9 @@ export function createRouter(inputs: Iterable<string>): Router {
 export function createMatch(path: Path): Match {
   const length = path.length;
 
+  // Handle empty pathname matches.
+  if (length === 0) return (pathname) => (pathname === "" ? [] : false);
+
   return function match(pathname) {
     let i = 0;
     let offset = 0;
@@ -203,6 +212,9 @@ export function createMatch(path: Path): Match {
 
     while (i < length) {
       const part = path[i];
+
+      // Stop processing if we reached the end.
+      if (pathname.length === offset) return false;
 
       // Handle simple string matches at the beginning.
       if (typeof part === "string") {
@@ -213,10 +225,7 @@ export function createMatch(path: Path): Match {
         continue;
       }
 
-      // Stop processing if we end in an empty string.
-      if (pathname.length === offset) return false;
-
-      // The part after a parameter is always a string, or the end.
+      // The part after a parameter is always a string, or the end of parts.
       const next = path[i + 1] as string | undefined;
       if (next === undefined) {
         params.push(pathname.slice(offset));

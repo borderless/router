@@ -51,6 +51,13 @@ describe("parse", () => {
 });
 
 describe("createMatch", () => {
+  it("should match empty path", () => {
+    const match = createMatch([]);
+
+    expect(match("")).toEqual([]);
+    expect(match("123")).toEqual(false);
+  });
+
   it("should match string part", () => {
     const match = createMatch(["test"]);
 
@@ -153,6 +160,8 @@ describe("createRouter", () => {
     expect(Array.from(router(""))).toEqual([
       { route: "", keys: [], values: [] },
     ]);
+
+    expect(Array.from(router("test"))).toEqual([]);
   });
 
   it("should error on duplicate routes", () => {
