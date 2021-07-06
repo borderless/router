@@ -20,6 +20,7 @@
     "url": "https://github.com/borderless/router/issues"
   },
   "main": "dist/index.js",
+  "type": "module",
   "engines": {
     "node": ">=12"
   },
