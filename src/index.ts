@@ -6,8 +6,8 @@ export type Parameters = Record<string, string | undefined>;
 /**
  * Matches return any parameters with the matched route.
  */
-export interface Result {
-  route: string;
+export interface Result<T extends string> {
+  route: T;
   keys: string[];
   values: string[];
 }
@@ -15,7 +15,9 @@ export interface Result {
 /**
  * A router accepts the input pathname and returns an iterable of matching results.
  */
-export type Router = (pathname: string) => Iterable<Result>;
+export type Router<T extends string> = (
+  pathname: string
+) => Iterable<Result<T>>;
 
 /**
  * Build a match function for dynamic route segments.
@@ -26,17 +28,17 @@ export type Match = (pathname: string) => string[] | false;
  * Trie-based routing with static and parameter support. Prioritizes static paths
  * before parameters.
  */
-class Node {
-  route: string | undefined;
+class Node<T extends string> {
+  route: T | undefined;
   keys: string[] | undefined;
 
-  static: Map<string, Node> = new Map();
-  dynamic: Map<Match, Node> = new Map();
+  static: Map<string, Node<T>> = new Map();
+  dynamic: Map<Match, Node<T>> = new Map();
 
   addStatic(value: string) {
     const existing = this.static.get(value);
     if (existing) return existing;
-    const child = new Node();
+    const child = new Node<T>();
     this.static.set(value, child);
     return child;
   }
@@ -44,12 +46,12 @@ class Node {
   addDynamic(value: Match) {
     const existing = this.dynamic.get(value);
     if (existing) return existing;
-    const child = new Node();
+    const child = new Node<T>();
     this.dynamic.set(value, child);
     return child;
   }
 
-  *match(value: string): Iterable<[string[], Node]> {
+  *match(value: string): Iterable<[string[], Node<T>]> {
     // Check static nodes first.
     const node = this.static.get(value);
     if (node) yield [[], node];
@@ -82,10 +84,10 @@ function pathToKey(path: Path, params: string[]) {
 /**
  * Add the routes to the trie, with support to re-use identical match functions.
  */
-function addToTrie(
-  root: Node,
+function addToTrie<T extends string>(
+  root: Node<T>,
   paths: Path[],
-  route: string,
+  route: T,
   cache: Map<string, Match>
 ) {
   let node = root;
@@ -166,8 +168,10 @@ export function buildRoutes(inputs: string[]): Array<[string, Path[]]> {
  * Characters to avoid: < > : " / \ | ? *
  * Ref: https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
  */
-export function createRouter(inputs: Iterable<string>): Router {
-  const root = new Node();
+export function createRouter<T extends string>(
+  inputs: Iterable<string>
+): Router<T> {
+  const root = new Node<T>();
   const cache = new Map<string, Match>();
   const routes = buildRoutes(Array.from(inputs));
 
@@ -175,11 +179,11 @@ export function createRouter(inputs: Iterable<string>): Router {
   for (const [route, paths] of routes) addToTrie(root, paths, route, cache);
 
   function* build(
-    node: Node,
+    node: Node<T>,
     index: number,
     segments: string[],
     values: string[]
-  ): Iterable<Result> {
+  ): Iterable<Result<T>> {
     // Reached the end of a valid match.
     if (index === segments.length) {
       if (typeof node.route === "string") {
@@ -200,7 +204,7 @@ export function createRouter(inputs: Iterable<string>): Router {
     }
   }
 
-  return function match(pathname: string): Iterable<Result> {
+  return function match(pathname: string): Iterable<Result<T>> {
     return build(root, 0, pathname.split("/"), []);
   };
 }

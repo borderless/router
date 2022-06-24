@@ -1,4 +1,5 @@
-import { parse, createMatch, createRouter, buildRoutes } from "./index";
+import { describe, it, expect } from "vitest";
+import { parse, createMatch, createRouter, buildRoutes } from "./index.js";
 
 describe("parse", () => {
   it("should parse simple segment", () => {
